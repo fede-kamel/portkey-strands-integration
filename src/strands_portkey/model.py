@@ -173,6 +173,7 @@ class PortkeyModel(Model):
         yield format_chunk({"chunk_type": "content_start", "data_type": "text"})
 
         tool_calls: dict[int, list[Any]] = {}
+        choice: Any = None
 
         async for event in response:  # type: ignore[union-attr]
             if not getattr(event, "choices", None):
@@ -206,13 +207,14 @@ class PortkeyModel(Model):
                 yield format_chunk({"chunk_type": "content_delta", "data_type": "tool", "data": tool_delta})
             yield format_chunk({"chunk_type": "content_stop", "data_type": "tool"})
 
-        yield format_chunk({"chunk_type": "message_stop", "data": choice.finish_reason})
+        yield format_chunk({"chunk_type": "message_stop", "data": choice.finish_reason if choice is not None else None})
 
-        async for event in response:  # type: ignore[union-attr]
-            _ = event
+        last_event: Any = None
+        async for last_event in response:  # type: ignore[union-attr]  # noqa: B007
+            pass
 
-        if event.usage:
-            yield format_chunk({"chunk_type": "metadata", "data": event.usage})
+        if last_event is not None and last_event.usage:
+            yield format_chunk({"chunk_type": "metadata", "data": last_event.usage})
 
         logger.debug("finished streaming response from model")
 
