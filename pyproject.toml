@@ -9,7 +9,8 @@ description = "Portkey model provider for Strands Agents"
 requires-python = ">=3.10"
 license = {text = "Apache-2.0"}
 authors = [
-    {name = "Portkey"},
+    {name = "Federico Kamelhar"},
+    {name = "Portkey AI, Inc."},
 ]
 classifiers = [
     "Development Status :: 3 - Alpha",
@@ -21,6 +22,7 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
@@ -40,6 +42,23 @@ dev = [
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/strands_portkey"]
+
+[tool.hatch.envs.default]
+dependencies = [
+    "pytest>=8.0.0,<9.0.0",
+    "pytest-cov>=6.0.0,<7.0.0",
+    "pytest-asyncio>=1.0.0,<1.2.0",
+    "ruff>=0.12.0,<0.13.0",
+    "mypy>=1.15.0,<2.0.0",
+]
+
+[tool.hatch.envs.default.scripts]
+test       = "pytest tests/unit/ --cov=strands_portkey --cov-report=term-missing -q"
+test-integ = "pytest tests/integration/ -v"
+lint       = "ruff check src/ tests/unit/"
+fmt        = "ruff format src/ tests/"
+type-check = "mypy src/"
+check      = ["lint", "type-check", "test"]
 
 [tool.ruff]
 line-length = 120
