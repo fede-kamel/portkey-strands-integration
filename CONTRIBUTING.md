@@ -127,5 +127,4 @@ Run `hatch run fmt` to auto-format, then `hatch run lint` to catch anything rema
 1. Fork the repository and create a feature branch from `main`.
 2. Make your changes, add tests, and ensure `hatch run check` passes cleanly.
 3. Open a pull request against `main` and fill in the PR template.
-4. Tag `@roh26it` and `@narengogi` for review.
-5. **`@fede-kamel` must approve the PR before it can be merged.**
+4. **`@fede-kamel` must approve the PR before it can be merged** (enforced automatically via CODEOWNERS).
