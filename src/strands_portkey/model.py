@@ -4,7 +4,7 @@
 """
 
 import logging
-from typing import Any, AsyncGenerator, Optional, Type, TypedDict, TypeVar, Union, cast
+from typing import Any, AsyncGenerator, Optional, Type, TypeVar, Union, cast
 
 from portkey_ai import AsyncPortkey
 from pydantic import BaseModel
@@ -12,8 +12,9 @@ from strands.models.model import Model
 from strands.types.content import Messages, SystemContentBlock
 from strands.types.streaming import StreamEvent
 from strands.types.tools import ToolChoice, ToolSpec
-from typing_extensions import Unpack, override
+from typing_extensions import override
 
+from ._config import PortkeyConfig
 from ._errors import handle_api_error
 from ._formatting import format_chunk, format_request_messages, format_tool_choice
 
@@ -29,21 +30,10 @@ class PortkeyModel(Model):
     with built-in fallbacks, load balancing, caching, and observability.
     """
 
-    class PortkeyConfig(TypedDict, total=False):
-        """Configuration options for Portkey models.
-
-        Attributes:
-            model_id: Model ID (e.g., "gpt-4o", "claude-sonnet-4-20250514").
-            params: Additional model parameters (e.g., max_tokens, temperature).
-        """
-
-        model_id: str
-        params: Optional[dict[str, Any]]
-
     def __init__(
         self,
         client_args: Optional[dict[str, Any]] = None,
-        **model_config: Unpack[PortkeyConfig],
+        **model_config: Any,
     ) -> None:
         """Initialize the Portkey model provider.
 
@@ -56,9 +46,13 @@ class PortkeyModel(Model):
                 - trace_id: Trace ID for request tracing.
                 - metadata: Metadata dict for observability.
                 - Authorization: Direct provider API key (when using provider slug).
-            **model_config: Configuration options for the model.
+            **model_config: Fields for :class:`PortkeyConfig` (``model_id``, ``params``).
+
+        Raises:
+            pydantic.ValidationError: If ``model_config`` fails validation
+                (e.g., missing or blank ``model_id``).
         """
-        self.config = dict(model_config)
+        self.config = PortkeyConfig(**model_config)
 
         logger.debug("config=<%s> | initializing", self.config)
 
@@ -66,22 +60,25 @@ class PortkeyModel(Model):
         self.client = AsyncPortkey(**client_args)
 
     @override
-    def update_config(self, **model_config: Unpack[PortkeyConfig]) -> None:  # type: ignore[override]
+    def update_config(self, **model_config: Any) -> None:
         """Update the model configuration.
 
         Args:
-            **model_config: Configuration overrides.
+            **model_config: Fields to override in the current :class:`PortkeyConfig`.
+
+        Raises:
+            pydantic.ValidationError: If the resulting config fails validation.
         """
-        self.config.update(model_config)
+        self.config = PortkeyConfig(**{**self.config.model_dump(), **model_config})
 
     @override
     def get_config(self) -> PortkeyConfig:
-        """Get the model configuration.
+        """Return the current validated configuration.
 
         Returns:
-            The model configuration.
+            The current :class:`PortkeyConfig` instance.
         """
-        return cast(PortkeyModel.PortkeyConfig, self.config)
+        return self.config
 
     def format_request(
         self,
@@ -101,14 +98,14 @@ class PortkeyModel(Model):
             system_prompt_content: System prompt content blocks.
 
         Returns:
-            Formatted request dict.
+            Formatted request dict ready to be unpacked into the Portkey API call.
         """
         request: dict[str, Any] = {
             "messages": format_request_messages(messages, system_prompt, system_prompt_content),
-            "model": self.config["model_id"],
+            "model": self.config.model_id,
             "stream": True,
             "stream_options": {"include_usage": True},
-            **cast(dict[str, Any], self.config.get("params", {})),
+            **cast(dict[str, Any], self.config.params or {}),
         }
 
         # Only include tools when there are actual tool specs — some providers
@@ -235,7 +232,7 @@ class PortkeyModel(Model):
             Model events with the last being the structured output.
         """
         response = await self.client.beta.chat.completions.parse(
-            model=self.get_config()["model_id"],
+            model=self.config.model_id,
             messages=self.format_request(prompt, system_prompt=system_prompt)["messages"],
             response_format=output_model,
         )

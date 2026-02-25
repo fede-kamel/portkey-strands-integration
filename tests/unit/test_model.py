@@ -3,9 +3,10 @@
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 from strands.types.exceptions import ContextWindowOverflowException, ModelThrottledException
 
+from strands_portkey._config import PortkeyConfig
 from strands_portkey.model import PortkeyModel
 
 # --- Fixtures ---
@@ -106,9 +107,17 @@ class TestInit:
 
     def test_init_stores_config(self, model):
         config = model.get_config()
-        assert config["model_id"] == "gpt-4o"
-        assert config["params"]["temperature"] == 0.7
-        assert config["params"]["max_tokens"] == 1000
+        assert config.model_id == "gpt-4o"
+        assert config.params["temperature"] == 0.7
+        assert config.params["max_tokens"] == 1000
+
+    def test_init_invalid_model_id_raises(self):
+        with patch("strands_portkey.model.AsyncPortkey"):
+            with pytest.raises(ValidationError, match="model_id"):
+                PortkeyModel(model_id="")
+
+    def test_get_config_returns_portkey_config(self, model):
+        assert isinstance(model.get_config(), PortkeyConfig)
 
     def test_init_with_portkey_specific_args(self):
         with patch("strands_portkey.model.AsyncPortkey") as mock_cls:
@@ -150,24 +159,28 @@ class TestInit:
 class TestConfig:
     def test_get_config(self, model):
         config = model.get_config()
-        assert config["model_id"] == "gpt-4o"
+        assert config.model_id == "gpt-4o"
 
     def test_update_config(self, model):
         model.update_config(model_id="gpt-4o-mini")
-        assert model.get_config()["model_id"] == "gpt-4o-mini"
+        assert model.get_config().model_id == "gpt-4o-mini"
 
     def test_update_config_params(self, model):
         model.update_config(params={"temperature": 0.1})
-        assert model.get_config()["params"]["temperature"] == 0.1
+        assert model.get_config().params["temperature"] == 0.1
 
     def test_update_config_preserves_other_fields(self, model):
         model.update_config(params={"temperature": 0.1})
-        assert model.get_config()["model_id"] == "gpt-4o"
+        assert model.get_config().model_id == "gpt-4o"
+
+    def test_update_config_invalid_raises(self, model):
+        with pytest.raises(ValidationError):
+            model.update_config(model_id="")
 
     def test_config_without_params(self, model_no_params):
         config = model_no_params.get_config()
-        assert config["model_id"] == "gpt-4o-mini"
-        assert "params" not in config
+        assert config.model_id == "gpt-4o-mini"
+        assert config.params is None
 
 
 # =============================================================================
