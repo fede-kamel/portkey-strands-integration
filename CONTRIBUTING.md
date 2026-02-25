@@ -98,8 +98,19 @@ src/strands_portkey/
     _errors.py       # error handling and exception mapping
 
 tests/
-    unit/            # fast, dependency-free unit tests (100% coverage required)
-    integration/     # live API tests (requires credentials)
+    unit/                        # fast, dependency-free unit tests (100% coverage required)
+    integration/                 # live API tests (requires credentials)
+        test_client_args.py      # client_args passthrough (virtual key, provider slug, config, metadata)
+        test_error_handling.py   # context overflow and throttle exception mapping
+        test_model_params.py     # max_tokens, temperature
+        test_multimodal.py       # image input
+        test_parallel_tool_use.py # parallel tool calls and multi-result round-trips
+        test_reasoning.py        # reasoning_content delta events
+        test_streaming.py        # text streaming, event order, usage metadata, multi-turn
+        test_structured_output.py # Pydantic structured output
+        test_system_prompt.py    # system prompt string and content block variants
+        test_tool_choice.py      # auto / any / specific tool_choice
+        test_tool_use.py         # single tool call and tool result round-trip
 ```
 
 ## Code style
@@ -116,4 +127,4 @@ Run `hatch run fmt` to auto-format, then `hatch run lint` to catch anything rema
 1. Fork the repository and create a feature branch from `main`.
 2. Make your changes, add tests, and ensure `hatch run check` passes cleanly.
 3. Open a pull request against `main` and fill in the PR template.
-4. Tag `@narengogi` for review.
+4. **`@fede-kamel` must approve the PR before it can be merged** (enforced automatically via CODEOWNERS).
