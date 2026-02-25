@@ -1,4 +1,4 @@
-# strands-agents-portkey
+# portkey-strands
 
 [![CI — Lint & Type Check](https://github.com/fede-kamel/portkey-strands/actions/workflows/lint.yml/badge.svg)](https://github.com/fede-kamel/portkey-strands/actions/workflows/lint.yml)
 [![CI — Unit Tests](https://github.com/fede-kamel/portkey-strands/actions/workflows/unit-tests.yml/badge.svg)](https://github.com/fede-kamel/portkey-strands/actions/workflows/unit-tests.yml)
