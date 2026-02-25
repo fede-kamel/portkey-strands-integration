@@ -2,6 +2,17 @@
 
 Thank you for your interest in contributing! This guide covers how to set up your development environment and run the standard checks.
 
+## Quick setup
+
+```bash
+# 1. Install Hatch
+pip install hatch
+
+# 2. Install the git hooks (runs the same checks as CI on every commit)
+git config core.hooksPath .githooks
+chmod +x .githooks/pre-commit
+```
+
 ## Prerequisites
 
 - Python 3.10 or later

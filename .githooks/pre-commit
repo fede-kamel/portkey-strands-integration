@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+set -e
+
+# Activate venv if it exists
+VENV_DIR="$(git rev-parse --show-toplevel)/.venv"
+if [ -d "$VENV_DIR" ]; then
+    source "$VENV_DIR/bin/activate"
+fi
+
+echo "==> Ruff format (check)"
+ruff format --check src/ tests/
+
+echo "==> Ruff lint"
+ruff check src/ tests/
+
+echo "==> Mypy"
+mypy src/
+
+echo "==> Unit tests"
+pytest tests/unit/ \
+    --cov=strands_portkey \
+    --cov-report=term-missing \
+    --cov-fail-under=100 \
+    -q
+
+echo "==> All pre-commit checks passed."
