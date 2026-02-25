@@ -174,8 +174,10 @@ class PortkeyModel(Model):
 
         tool_calls: dict[int, list[Any]] = {}
         choice: Any = None
+        last_main_event: Any = None
 
         async for event in response:  # type: ignore[union-attr]
+            last_main_event = event
             if not getattr(event, "choices", None):
                 continue
             choice = event.choices[0]  # type: ignore[index]
@@ -209,12 +211,16 @@ class PortkeyModel(Model):
 
         yield format_chunk({"chunk_type": "message_stop", "data": choice.finish_reason if choice is not None else None})
 
-        last_event: Any = None
-        async for last_event in response:  # type: ignore[union-attr]  # noqa: B007
+        # Drain any remaining events (OpenAI sends a trailing usage-only chunk).
+        # Fall back to the last main-loop event (Anthropic includes usage on the
+        # finish_reason event itself, so the drain loop may be empty).
+        last_drain_event: Any = None
+        async for last_drain_event in response:  # type: ignore[union-attr]  # noqa: B007
             pass
 
-        if last_event is not None and last_event.usage:
-            yield format_chunk({"chunk_type": "metadata", "data": last_event.usage})
+        usage_event = last_drain_event if last_drain_event is not None else last_main_event
+        if usage_event is not None and getattr(usage_event, "usage", None):
+            yield format_chunk({"chunk_type": "metadata", "data": usage_event.usage})
 
         logger.debug("finished streaming response from model")
 
