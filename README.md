@@ -1,7 +1,7 @@
-# strands-agents-portkey
+# portkey-strands
 
-[![CI — Lint & Type Check](https://github.com/fede-kamel/strands-portkey/actions/workflows/lint.yml/badge.svg)](https://github.com/fede-kamel/strands-portkey/actions/workflows/lint.yml)
-[![CI — Unit Tests](https://github.com/fede-kamel/strands-portkey/actions/workflows/unit-tests.yml/badge.svg)](https://github.com/fede-kamel/strands-portkey/actions/workflows/unit-tests.yml)
+[![CI — Lint & Type Check](https://github.com/fede-kamel/portkey-strands/actions/workflows/lint.yml/badge.svg)](https://github.com/fede-kamel/portkey-strands/actions/workflows/lint.yml)
+[![CI — Unit Tests](https://github.com/fede-kamel/portkey-strands/actions/workflows/unit-tests.yml/badge.svg)](https://github.com/fede-kamel/portkey-strands/actions/workflows/unit-tests.yml)
 [![PyPI](https://img.shields.io/pypi/v/strands-agents-portkey)](https://pypi.org/project/strands-agents-portkey/)
 [![Python](https://img.shields.io/pypi/pyversions/strands-agents-portkey)](https://pypi.org/project/strands-agents-portkey/)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue)](LICENSE)
